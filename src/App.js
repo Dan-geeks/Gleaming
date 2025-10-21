@@ -190,42 +190,60 @@ const GleamingSolutionsApp = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitStatus, setSubmitStatus] = useState('');
     const [selectedServices, setSelectedServices] = useState([]);
-    const [isServicePickerOpen, setIsServicePickerOpen] = useState(false);
+    const [currentService, setCurrentService] = useState('');
 
-    const handleServiceSelect = (serviceName) => {
-      setSelectedServices((current) => {
-        if (current.includes(serviceName)) {
-          return current;
-        }
-
-        return [...current, serviceName];
-      });
-      setIsServicePickerOpen(false);
+    const addService = () => {
+      if (currentService && !selectedServices.includes(currentService)) {
+        setSelectedServices(prevServices => [...prevServices, currentService]);
+        setCurrentService('');
+      }
     };
 
-    const handleServiceRemove = (serviceName) => {
-      setSelectedServices((current) => current.filter((name) => name !== serviceName));
+    const removeService = (serviceToRemove) => {
+      setSelectedServices(prevServices =>
+        prevServices.filter(service => service !== serviceToRemove)
+      );
     };
-
-    const toggleServicePicker = () => {
-      setIsServicePickerOpen((previous) => !previous);
-    };
-
-    const availableServices = services.filter(
-      (service) => !selectedServices.includes(service.name)
-    );
 
     const sendEmail = (e) => {
       e.preventDefault();
+
+      if (selectedServices.length === 0) {
+        alert('Please select at least one service.');
+        return;
+      }
+
+      if (!form.current) {
+        setSubmitStatus('error');
+        alert('The form is not available. Please refresh and try again.');
+        return;
+      }
+
+      const serviceId = process.env.REACT_APP_EMAILJS_SERVICE_ID;
+      const templateId = process.env.REACT_APP_EMAILJS_TEMPLATE_ID;
+      const publicKey = process.env.REACT_APP_EMAILJS_PUBLIC_KEY;
+
+      if (!serviceId || !templateId || !publicKey) {
+        setSubmitStatus('error');
+        alert('We are unable to submit your request right now. Please contact us directly at 0768831141.');
+        return;
+      }
+
       setIsSubmitting(true);
       setSubmitStatus('');
 
+      const servicesInput = document.createElement('input');
+      servicesInput.type = 'hidden';
+      servicesInput.name = 'service';
+      servicesInput.value = selectedServices.join(', ');
+      form.current.appendChild(servicesInput);
+
       emailjs
         .sendForm(
-          process.env.REACT_APP_EMAILJS_SERVICE_ID,
-          process.env.REACT_APP_EMAILJS_TEMPLATE_ID,
+          serviceId,
+          templateId,
           form.current,
-          process.env.REACT_APP_EMAILJS_PUBLIC_KEY
+          publicKey
         )
         .then(
           () => {
@@ -233,14 +251,19 @@ const GleamingSolutionsApp = () => {
             setIsSubmitting(false);
             form.current.reset();
             setSelectedServices([]);
-            setIsServicePickerOpen(false);
+            setCurrentService('');
+            if (form.current?.contains(servicesInput)) {
+              form.current.removeChild(servicesInput);
+            }
             alert('Thank you! Your quote request has been sent successfully. We will contact you soon.');
           },
-          (error) => {
+          () => {
             setSubmitStatus('error');
             setIsSubmitting(false);
+            if (form.current?.contains(servicesInput)) {
+              form.current.removeChild(servicesInput);
+            }
             alert('Oops! Something went wrong. Please try again or call us directly at 0768831141.');
-            console.log('FAILED...', error.text);
           }
         );
     };
@@ -264,61 +287,55 @@ const GleamingSolutionsApp = () => {
             <input type="tel" name="user_phone" placeholder="Phone Number *" required />
             <input type="email" name="user_email" placeholder="Email *" required className="full-width" />
             <div className="quote-service-field full-width">
-              <label className="quote-label" htmlFor="service-picker">
+              <label className="quote-label" htmlFor="service-input">
                 Service(s) *
               </label>
-              <div className={`service-selector ${isServicePickerOpen ? 'open' : ''}`}>
-                <div className="selected-services-display" id="service-picker" aria-live="polite">
-                  {selectedServices.length > 0 ? (
-                    selectedServices.map(serviceName => (
-                      <button
-                        key={serviceName}
-                        type="button"
-                        className="selected-service-chip"
-                        onClick={() => handleServiceRemove(serviceName)}
-                        aria-label={`Remove ${serviceName}`}
-                      >
-                        {serviceName}
-                        <span aria-hidden="true">&times;</span>
-                      </button>
-                    ))
-                  ) : (
-                    <span className="selected-placeholder">Tap + to choose service(s)</span>
-                  )}
-                </div>
+              <div className="service-select-row">
+                <select
+                  id="service-input"
+                  value={currentService}
+                  onChange={(event) => setCurrentService(event.target.value)}
+                  required={selectedServices.length === 0}
+                >
+                  <option value="">Select a service</option>
+                  {services.map(service => (
+                    <option key={service.name} value={service.name}>
+                      {service.name}
+                    </option>
+                  ))}
+                </select>
                 <button
                   type="button"
-                  className="service-toggle-button"
-                  onClick={toggleServicePicker}
-                  aria-expanded={isServicePickerOpen}
-                  aria-controls="service-dropdown"
+                  onClick={addService}
+                  disabled={!currentService || selectedServices.includes(currentService)}
                 >
-                  {isServicePickerOpen ? <span>&times;</span> : <span>+</span>}
+                  Add
                 </button>
               </div>
-              {isServicePickerOpen && (
-                <div className="service-dropdown" id="service-dropdown">
-                  {availableServices.length > 0 ? (
-                    availableServices.map((service) => (
+              {selectedServices.length > 0 && (
+                <div className="selected-services">
+                  {selectedServices.map(service => (
+                    <span key={service} className="selected-service">
+                      {service}
                       <button
-                        key={service.name}
                         type="button"
-                        className="service-dropdown-item"
-                        onClick={() => handleServiceSelect(service.name)}
+                        aria-label={`Remove ${service}`}
+                        onClick={() => removeService(service)}
                       >
-                        {service.name}
+                        &times;
                       </button>
-                    ))
-                  ) : (
-                    <div className="service-dropdown-empty">
-                      All services are selected.
-                    </div>
-                  )}
+                    </span>
+                  ))}
                 </div>
               )}
-              <input type="hidden" name="service" value={selectedServices.join(', ')} />
-              <p className="service-helper-text">Tap a chip to remove a service or use + to add more.</p>
+              <p className="service-helper-text">Select the service(s) you would like us to assist with.</p>
             </div>
+            <textarea
+              name="service_details"
+              placeholder="Add any additional details"
+              rows="3"
+              className="full-width"
+            ></textarea>
             <textarea name="location" placeholder="Location" rows="3" className="full-width"></textarea>
             <button type="submit" className="full-width" disabled={isSubmitting}>
               {isSubmitting ? 'Sending...' : 'Submit Now'}
