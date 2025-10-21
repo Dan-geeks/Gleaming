@@ -189,6 +189,31 @@ const GleamingSolutionsApp = () => {
     const form = useRef();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitStatus, setSubmitStatus] = useState('');
+    const [selectedServices, setSelectedServices] = useState([]);
+    const [isServicePickerOpen, setIsServicePickerOpen] = useState(false);
+
+    const handleServiceSelect = (serviceName) => {
+      setSelectedServices((current) => {
+        if (current.includes(serviceName)) {
+          return current;
+        }
+
+        return [...current, serviceName];
+      });
+      setIsServicePickerOpen(false);
+    };
+
+    const handleServiceRemove = (serviceName) => {
+      setSelectedServices((current) => current.filter((name) => name !== serviceName));
+    };
+
+    const toggleServicePicker = () => {
+      setIsServicePickerOpen((previous) => !previous);
+    };
+
+    const availableServices = services.filter(
+      (service) => !selectedServices.includes(service.name)
+    );
 
     const sendEmail = (e) => {
       e.preventDefault();
@@ -207,6 +232,8 @@ const GleamingSolutionsApp = () => {
             setSubmitStatus('success');
             setIsSubmitting(false);
             form.current.reset();
+            setSelectedServices([]);
+            setIsServicePickerOpen(false);
             alert('Thank you! Your quote request has been sent successfully. We will contact you soon.');
           },
           (error) => {
@@ -223,16 +250,81 @@ const GleamingSolutionsApp = () => {
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <h2 style={{ fontSize: '2rem', fontWeight: 'bold' }}>Get a Free Quote</h2>
         </div>
-        <form ref={form} onSubmit={sendEmail} className="quote-form" style={{ maxWidth: '800px', margin: '0 auto' }}>
-          <input type="text" name="user_name" placeholder="Name *" required />
-          <input type="tel" name="user_phone" placeholder="Phone Number *" required />
-          <input type="email" name="user_email" placeholder="Email *" required className="full-width" />
-          <input type="text" name="service" placeholder="Service(s) *" required className="full-width" />
-          <textarea name="location" placeholder="Location" rows="3" className="full-width"></textarea>
-          <button type="submit" className="full-width" disabled={isSubmitting}>
-            {isSubmitting ? 'Sending...' : 'Submit Now'}
-          </button>
-        </form>
+        <div className="quote-layout">
+          <div className="quote-services">
+            <h3>Trusted Cleaning Services</h3>
+            <ul className="quote-services-list">
+              {services.map(service => (
+                <li key={service.name}>{service.name}</li>
+              ))}
+            </ul>
+          </div>
+          <form ref={form} onSubmit={sendEmail} className="quote-form">
+            <input type="text" name="user_name" placeholder="Name *" required />
+            <input type="tel" name="user_phone" placeholder="Phone Number *" required />
+            <input type="email" name="user_email" placeholder="Email *" required className="full-width" />
+            <div className="quote-service-field full-width">
+              <label className="quote-label" htmlFor="service-picker">
+                Service(s) *
+              </label>
+              <div className={`service-selector ${isServicePickerOpen ? 'open' : ''}`}>
+                <div className="selected-services-display" id="service-picker" aria-live="polite">
+                  {selectedServices.length > 0 ? (
+                    selectedServices.map(serviceName => (
+                      <button
+                        key={serviceName}
+                        type="button"
+                        className="selected-service-chip"
+                        onClick={() => handleServiceRemove(serviceName)}
+                        aria-label={`Remove ${serviceName}`}
+                      >
+                        {serviceName}
+                        <span aria-hidden="true">&times;</span>
+                      </button>
+                    ))
+                  ) : (
+                    <span className="selected-placeholder">Tap + to choose service(s)</span>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  className="service-toggle-button"
+                  onClick={toggleServicePicker}
+                  aria-expanded={isServicePickerOpen}
+                  aria-controls="service-dropdown"
+                >
+                  {isServicePickerOpen ? <span>&times;</span> : <span>+</span>}
+                </button>
+              </div>
+              {isServicePickerOpen && (
+                <div className="service-dropdown" id="service-dropdown">
+                  {availableServices.length > 0 ? (
+                    availableServices.map((service) => (
+                      <button
+                        key={service.name}
+                        type="button"
+                        className="service-dropdown-item"
+                        onClick={() => handleServiceSelect(service.name)}
+                      >
+                        {service.name}
+                      </button>
+                    ))
+                  ) : (
+                    <div className="service-dropdown-empty">
+                      All services are selected.
+                    </div>
+                  )}
+                </div>
+              )}
+              <input type="hidden" name="service" value={selectedServices.join(', ')} />
+              <p className="service-helper-text">Tap a chip to remove a service or use + to add more.</p>
+            </div>
+            <textarea name="location" placeholder="Location" rows="3" className="full-width"></textarea>
+            <button type="submit" className="full-width" disabled={isSubmitting}>
+              {isSubmitting ? 'Sending...' : 'Submit Now'}
+            </button>
+          </form>
+        </div>
       </section>
     );
   };
