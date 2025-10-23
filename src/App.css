@@ -59,6 +59,47 @@ textarea {
 .topbar-contact-info {
   display: flex;
   gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+@media (max-width: 768px) {
+  .topbar-contact {
+    padding: 0.5rem 1rem;
+    font-size: 0.75rem;
+  }
+
+  .topbar-contact-info {
+    gap: 0.5rem;
+  }
+
+  .contact-text {
+    display: none;
+  }
+
+  .contact-item {
+    font-size: 0;
+  }
+
+  .contact-item svg {
+    font-size: 16px;
+  }
+
+  .search-icon {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .topbar-contact {
+    font-size: 0.7rem;
+  }
 }
 
 .topbar {
@@ -79,6 +120,17 @@ textarea {
   font-size: 1.75rem;
   font-weight: 800;
   color: var(--brand);
+  white-space: nowrap;
+}
+
+.mobile-menu-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--brand);
+  cursor: pointer;
+  padding: 0.5rem;
+  z-index: 60;
 }
 
 .topbar-nav {
@@ -92,10 +144,83 @@ textarea {
   text-decoration: none;
   color: var(--text);
   transition: color 0.2s;
+  white-space: nowrap;
 }
 
 .topbar-nav a:hover {
   color: var(--brand);
+}
+
+@media (max-width: 968px) {
+  .topbar {
+    padding: 1rem 2%;
+  }
+
+  .topbar-title {
+    font-size: 1.4rem;
+  }
+
+  .topbar-nav {
+    gap: 1rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .topbar {
+    padding: 1rem;
+    position: relative;
+  }
+
+  .topbar-title {
+    font-size: 1.25rem;
+  }
+
+  .mobile-menu-toggle {
+    display: block;
+  }
+
+  .topbar-nav {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    height: 100vh;
+    width: 70%;
+    max-width: 300px;
+    background: #fff;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 5rem 2rem 2rem;
+    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+    transition: right 0.3s ease-in-out;
+    z-index: 55;
+    gap: 1.5rem;
+  }
+
+  .topbar-nav.mobile-menu-open {
+    right: 0;
+  }
+
+  .topbar-nav a {
+    font-size: 1.1rem;
+    width: 100%;
+    padding: 0.5rem 0;
+  }
+
+  .quote-button {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .topbar-title {
+    font-size: 1.1rem;
+  }
+
+  .topbar-nav {
+    width: 80%;
+  }
 }
 
 .quote-button {

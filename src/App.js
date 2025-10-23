@@ -1,10 +1,11 @@
 // src/App.js
 import React, { useRef, useState } from 'react';
-import { Phone, Mail, Search } from 'lucide-react';
+import { Phone, Mail, Search, Menu, X } from 'lucide-react';
 import emailjs from '@emailjs/browser';
 import './App.css';
 
 const GleamingSolutionsApp = () => {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const services = [
     {
@@ -105,20 +106,27 @@ const GleamingSolutionsApp = () => {
     <>
       <div className="topbar-contact">
         <div className="topbar-contact-info">
-          <span><Mail size={16} style={{ verticalAlign: 'middle' }} /> info@gleamingsolutions.co.ke</span>
-          <span><Phone size={16} style={{ verticalAlign: 'middle' }} /> 0768831141</span>
+          <span className="contact-item"><Mail size={16} style={{ verticalAlign: 'middle' }} /> <span className="contact-text">info@gleamingsolutions.co.ke</span></span>
+          <span className="contact-item"><Phone size={16} style={{ verticalAlign: 'middle' }} /> <span className="contact-text">0768831141</span></span>
         </div>
-        <Search size={20} />
+        <Search size={20} className="search-icon" />
       </div>
       <header className="topbar">
         <div className="topbar-title">Gleaming Solutions</div>
-        <nav className="topbar-nav">
-          <a href="#home">Home</a>
-          <a href="#about">About</a>
-          <a href="#residential">Residential</a>
-          <a href="#commercial">Commercial</a>
-          <a href="#contact">Contact</a>
-          <a href="#quote" className="quote-button">Free Quote</a>
+        <button 
+          className="mobile-menu-toggle" 
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label="Toggle menu"
+        >
+          {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+        <nav className={`topbar-nav ${mobileMenuOpen ? 'mobile-menu-open' : ''}`}>
+          <a href="#home" onClick={() => setMobileMenuOpen(false)}>Home</a>
+          <a href="#about" onClick={() => setMobileMenuOpen(false)}>About</a>
+          <a href="#residential" onClick={() => setMobileMenuOpen(false)}>Residential</a>
+          <a href="#commercial" onClick={() => setMobileMenuOpen(false)}>Commercial</a>
+          <a href="#contact" onClick={() => setMobileMenuOpen(false)}>Contact</a>
+          <a href="#quote" className="quote-button" onClick={() => setMobileMenuOpen(false)}>Free Quote</a>
         </nav>
       </header>
     </>
@@ -370,7 +378,7 @@ const GleamingSolutionsApp = () => {
         </div>
       </div>
       <div className="copyright">
-        Copyright © 2025 Gleaming Solutions.
+        Copyright Â© 2025 Gleaming Solutions.
       </div>
     </footer>
   );
